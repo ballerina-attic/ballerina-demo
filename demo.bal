@@ -6,7 +6,7 @@ import ballerina/time;
 import ballerina/net.uri;
 import ballerina/security.crypto;
 
-import twitter;
+import wso2/twitter;
 
 endpoint http:ServiceEndpoint inbound {
    port:9090
