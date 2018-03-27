@@ -14,7 +14,6 @@ endpoint http:ServiceEndpoint listener {
 
 json previousRes;
 
-
 endpoint http:ClientEndpoint twitterStoreEp {
     circuitBreaker: {
         failureThreshold:0.2,
@@ -44,11 +43,6 @@ service<http:Service> greeting bind listener {
                 io:println("No payload found!");
             }
         }
-
-
-        // *********
-        // Tweeting Logic goes here
-        // *********
 
         // Calling TweetStoring service
         var response = twitterStoreEp -> get("/customer", {});
