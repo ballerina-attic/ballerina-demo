@@ -40,10 +40,7 @@ function <TweetSaveClient client> persist (string content, string tweeterId) ret
     sql:Parameter para1 = {sqlType : sql:Type.VARCHAR, value : content};
     sql:Parameter para2 = {sqlType : sql:Type.VARCHAR, value : tweeterId};
     params = [para1, para2];
-    io:println("persist 1");
-
     var ret = localClient -> update("INSERT INTO TWEET_STORE (CONTENT, TWEET_ID) VALUES (?,?)", params);
-
     match ret {
         int rows => {
             io:println("Inserted row count:" + rows);
@@ -53,8 +50,6 @@ function <TweetSaveClient client> persist (string content, string tweeterId) ret
             return false;
         }
     }
-    io:println("persist 2");
-
     return true;
 }
 
