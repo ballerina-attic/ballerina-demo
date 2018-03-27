@@ -1,0 +1,38 @@
+---
+apiVersion: "extensions/v1beta1"
+kind: "Deployment"
+metadata:
+  annotations: {}
+  finalizers: []
+  labels:
+    app: "demo_k8s"
+  name: "ballerina-demo"
+  ownerReferences: []
+spec:
+  replicas: 1
+  template:
+    metadata:
+      annotations: {}
+      finalizers: []
+      labels:
+        app: "demo_k8s"
+      ownerReferences: []
+    spec:
+      containers:
+      - args: []
+        command: []
+        env: []
+        envFrom: []
+        image: "kasunindrasiri/ballerina-demo"
+        imagePullPolicy: "IfNotPresent"
+        name: "ballerina-demo"
+        ports:
+        - containerPort: 9090
+          protocol: "TCP"
+        volumeMounts: []
+      hostAliases: []
+      imagePullSecrets: []
+      initContainers: []
+      nodeSelector: {}
+      tolerations: []
+      volumes: []

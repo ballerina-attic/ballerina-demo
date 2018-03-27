@@ -2,6 +2,7 @@ import ballerina/net.http;
 import wso2/twitter;
 import ballerina/config;
 import ballerina/time;
+import ballerinax/kubernetes;
 
 twitter:TwitterConnector twitter = {};
 
@@ -16,12 +17,29 @@ function init() returns (string) {
     return "";
 }
 
+@kubernetes:SVC{
+    serviceType:"NodePort",
+    name:"ballerina-demo"
+}
 endpoint http:ServiceEndpoint listener {
     port:9090
 };
 
+@kubernetes:Deployment {
+    image: "kasunindrasiri/ballerina-demo",
+    name: "ballerina-demo"
+}
+
+//@kubernetes:ConfigMap{
+//    configMaps:[
+//               {name:"ballerina-config", mountPath:"/home/ballerina/conf", isBallerinaConf:true,
+//                   data:["ballerina.conf"]
+//               }
+//   ]
+//}
+
 @http:ServiceConfig {
-    basePath: "/"
+    basePath: "/demo"
 }
 service<http:Service> demo bind listener {
     @http:ResourceConfig {
