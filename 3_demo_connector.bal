@@ -43,7 +43,7 @@ service<http:Service> hello bind {port:9090} {
        // Use the twitter connector to do the tweet
        twitter:Status st = check twitter->tweet(payload);
        // Change the response back
-       res.setTextPayload("Tweeted: " + st.text);
+       res.setTextPayload("Tweeted: " + st.text + "\n");
        _ = caller->respond(res);
    } 
 }

@@ -1,6 +1,6 @@
-Standard Ballerina Demo
+# Standard Ballerina Demo
 
-Total time: 30 minutes (including slides) if you are a fast talker and typer
+Total time: 30-60 minutes (including slides) depending on whether you type it all or copy from the pre-created script files, how fast you can do it, how many questions you get asked, and so on.
 
 Target audience: technical: meetups, technical customers/partners - this is a dev-level demo
 
@@ -14,15 +14,16 @@ Target audience: technical: meetups, technical customers/partners - this is a de
 
 Eventually from ballerina.io, for now from ballerinalang.org or some other internal location
 
-Currently tested on 0.970.0 beta17
+Currently tested on 0.970.0 rc1
 
 Add Ballerina **bin** folder to your $PATH
 
 Check it by opening the terminal window and running:
 
+```
 $ ballerina version
-
 Ballerina 0.970.0-beta17
+```
 
 ## VS Code
 
@@ -71,9 +72,11 @@ If you know Dmitry and want to re-use his account [https://twitter.com/B7aDemo](
 
 Before starting your demo, delete all the old tweets - manually or by using **twitter_cleanup.bal** script that ships with the demo:
 
+```
 ballerina run twitter_cleanup.bal --config twitter.toml
 
 curl -X DELETE localhost:9090/B7aDemo/0
+```
 
 ![image alt text](img/image_4.png)
 
@@ -969,8 +972,8 @@ And the handling changes to:
 ```ballerina
 var v = homer->get("/quote");
 
-**match**** ****v**** {**
-**   ****http****:****Response**** ****hResp**** ****=>**** {**
+match v {
+   http:Response hResp => {
        string payload = check hResp.getTextPayload();
        if (!payload.contains("#ballerina")){payload=payload+" #ballerina";}
        twitter:Status st = check twitter->tweet(payload);
@@ -981,11 +984,11 @@ var v = homer->get("/quote");
            agent: "ballerina"
        };
        res.setJsonPayload(myJson);
-**   }**
-**   ****error**** ****err**** ****=>**** {**
+   }
+   error err => {
        res.setTextPayload("Circuit is open. Invoking default behavior.\n");
-**   }**
-**}**
+   }
+}
 ```
 
 Notice how match provides us with the ability to have error handling and define the behavior both for the happy path and for the failure.
