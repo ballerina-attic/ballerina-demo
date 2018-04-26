@@ -15,6 +15,7 @@
 import ballerina/http;
 import wso2/twitter;
 import ballerina/config;
+// Add kubernetes package
 import ballerinax/kubernetes;
 
 endpoint twitter:Client twitter {
@@ -25,6 +26,9 @@ endpoint twitter:Client twitter {
    clientConfig:{}   
 };
 
+// Now instead of inline {port:9090} bind we create a separate endpoint
+// We need this so we can add Kubernetes notation to it and tell the compiler
+// to generate a Kubernetes services (expose it to the outside world)
 @kubernetes:Service {
  serviceType: "NodePort",
  name: "ballerina-demo"  
@@ -33,10 +37,13 @@ endpoint http:Listener listener {
   port: 9090
 };
 
+// Instruct the compiler to generate Kubernetes deployment artifacts
+// and a docker image out of this Ballerina service
 @kubernetes:Deployment {
  image: "demo/ballerina-demo",
  name: "ballerina-demo"
 }
+// Pass our config file into the image
 @kubernetes:ConfigMap{
    ballerinaConf: "twitter.toml"
 }
@@ -50,14 +57,14 @@ service<http:Service> hello bind listener {
    }
    hi (endpoint caller, http:Request request) {
        http:Response res;
-       string status = check request.getTextPayload();
+       string payload = check request.getTextPayload();
 
-       if (!status.contains("#ballerina")){status=status+" #ballerina";}
+       if (!payload.contains("#ballerina")){payload=payload+" #ballerina";}
 
-       twitter:Status st = check twitter->tweet(status);
+       twitter:Status st = check twitter->tweet(payload);
 
        json myJson = {
-           text: status,
+           text: payload,
            id: st.id,
            agent: "ballerina"
        };

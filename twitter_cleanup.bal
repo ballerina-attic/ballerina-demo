@@ -59,7 +59,7 @@ service<http:Service> tweetCleaner bind {port: 9090} {
                     id: tw.id,
                     text: tw.text};
         tweets[lengthof tweets] = t;
-        _ = twitter->destroyStatus(tw.id);
+        _ = twitter->destroyStatus(<string> tw.id);
         io:println(tw.createdAt + ": " + tw.id);
     }
     json out = { deleted : tweets };
