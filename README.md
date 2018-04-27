@@ -12,9 +12,9 @@ Target audience: technical: meetups, technical customers/partners - this is a de
 
 ## Ballerina
 
-Eventually from ballerina.io, for now from ballerinalang.org or some other internal location
+Get the latest download from [ballerina.io](http://ballerina.io)
 
-Currently tested on 0.970.0 rc1
+Currently tested on 0.970.0
 
 Add Ballerina **bin** folder to your $PATH
 
@@ -22,7 +22,7 @@ Check it by opening the terminal window and running:
 
 ```
 $ ballerina version
-Ballerina 0.970.0-beta17
+Ballerina 0.970.0
 ```
 
 ## VS Code
