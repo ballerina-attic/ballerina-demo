@@ -19,7 +19,7 @@ endpoint http:Client homer {
   timeoutMillis: 500
 };
 
-endpoint twitter:Client twitter {
+endpoint twitter:Client tw {
   clientId: config:getAsString("clientId"),
   clientSecret: config:getAsString("clientSecret"),
   accessToken: config:getAsString("accessToken"),
@@ -45,7 +45,7 @@ service<http:Service> hello bind {port: 9090} {
               string status = check hResp.getTextPayload();
 
               if (!status.contains("#ballerina")){status=status+" #ballerina";}
-              twitter:Status st = check twitter->tweet(status);
+              twitter:Status st = check tw->tweet(status);
               json myJson = {
                   text: status,
                   id: st.id,

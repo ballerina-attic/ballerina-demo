@@ -18,7 +18,7 @@ import ballerina/config;
 // Add kubernetes package
 import ballerinax/kubernetes;
 
-endpoint twitter:Client twitter {
+endpoint twitter:Client tw {
    clientId: config:getAsString("clientId"),
    clientSecret: config:getAsString("clientSecret"),
    accessToken: config:getAsString("accessToken"),
@@ -61,7 +61,7 @@ service<http:Service> hello bind listener {
 
        if (!payload.contains("#ballerina")){payload=payload+" #ballerina";}
 
-       twitter:Status st = check twitter->tweet(payload);
+       twitter:Status st = check tw->tweet(payload);
 
        json myJson = {
            text: payload,

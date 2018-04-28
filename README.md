@@ -406,7 +406,7 @@ import ballerina/config;
 This code would be right below the import:
 
 ```ballerina
-endpoint twitter:Client twitter {
+endpoint twitter:Client tw {
    clientId: config:getAsString("clientId"),
    clientSecret: config:getAsString("clientSecret"),
    accessToken: config:getAsString("accessToken"),
@@ -420,7 +420,7 @@ Now we have the twitter endpoint in our hands, let’s go ahead and tweet!
 Now, we can get our response from Twitter by just calling its tweet method. The check keyword means - I understand that this may return an error. I do not want to handle it hear - pass it further away (to the caller function, or if this is a top-level function - generate a runtime failure).
 
 ```ballerina
-twitter:Status st = check twitter->tweet(payload);
+twitter:Status st = check tw->tweet(payload);
 ```
 
 Your code will now look like this:
@@ -451,7 +451,7 @@ import ballerina/config;
 // We need to initialize it with OAuth data from apps.twitter.com.
 // Instead of providing this confidential data in the code
 // we read it from a toml file
-endpoint twitter:Client twitter {
+endpoint twitter:Client tw {
   clientId: config:getAsString("clientId"),
   clientSecret: config:getAsString("clientSecret"),
   accessToken: config:getAsString("accessToken"),
@@ -472,7 +472,7 @@ service<http:Service> hello bind {port:9090} {
       string payload = check request.getTextPayload();
 
       // Use the twitter connector to do the tweet
-      twitter:Status st = check twitter->tweet(payload);
+      twitter:Status st = check tw->tweet(payload);
 
       // Change the response back
       res.setTextPayload("Tweeted: " + st.text);
@@ -557,7 +557,7 @@ import ballerina/http;
 import wso2/twitter;
 import ballerina/config;
 
-endpoint twitter:Client twitter {
+endpoint twitter:Client tw {
   clientId: config:getAsString("clientId"),
   clientSecret: config:getAsString("clientSecret"),
   accessToken: config:getAsString("accessToken"),
@@ -581,7 +581,7 @@ service<http:Service> hello bind {port:9090} {
       // transformation on the way to the twitter service - add hashtag
       if (!payload.contains("#ballerina")){payload=payload+" #ballerina";}
 
-      twitter:Status st = check twitter->tweet(payload);
+      twitter:Status st = check tw->tweet(payload);
 
       // transformation on the way out - generate a JSON and pass it back
       // note that json is a first-class citizen
@@ -697,7 +697,7 @@ import ballerina/config;
 // Add kubernetes package
 import ballerinax/kubernetes;
 
-endpoint twitter:Client twitter {
+endpoint twitter:Client tw {
   clientId: config:getAsString("clientId"),
   clientSecret: config:getAsString("clientSecret"),
   accessToken: config:getAsString("accessToken"),
@@ -740,7 +740,7 @@ service<http:Service> hello bind listener {
       string payload = check request.getTextPayload();
       if (!payload.contains("#ballerina")){payload=payload+" #ballerina";}
       
-      twitter:Status st = check twitter->tweet(payload);
+      twitter:Status st = check tw->tweet(payload);
 
       json myJson = {
           text: payload,
@@ -891,7 +891,7 @@ endpoint http:Client homer {
  url: "http://www.simpsonquotes.xyz"
 };
 
-endpoint twitter:Client twitter {
+endpoint twitter:Client tw {
  clientId: config:getAsString("clientId"),
  clientSecret: config:getAsString("clientSecret"),
  accessToken: config:getAsString("accessToken"),
@@ -917,7 +917,7 @@ service<http:Service> hello bind {port:9090} {
 
      if (!payload.contains("#ballerina")){payload=payload+" #ballerina";}
 
-     twitter:Status st = check twitter->tweet(payload);
+     twitter:Status st = check tw->tweet(payload);
 
      json myJson = {
          text: payload,
@@ -976,7 +976,7 @@ match v {
    http:Response hResp => {
        string payload = check hResp.getTextPayload();
        if (!payload.contains("#ballerina")){payload=payload+" #ballerina";}
-       twitter:Status st = check twitter->tweet(payload);
+       twitter:Status st = check tw->tweet(payload);
 
        json myJson = {
            text: payload,
@@ -1021,7 +1021,7 @@ endpoint http:Client homer {
  timeoutMillis: 500
 };
 
-endpoint twitter:Client twitter {
+endpoint twitter:Client tw {
  clientId: config:getAsString("clientId"),
  clientSecret: config:getAsString("clientSecret"),
  accessToken: config:getAsString("accessToken"),
@@ -1052,7 +1052,7 @@ service<http:Service> hello bind {port: 9090} {
              // if proper http response use our old code
              string payload = check hResp.getTextPayload();
              if (!payload.contains("#ballerina")){payload=payload+" #ballerina";}
-             twitter:Status st = check twitter->tweet(payload);
+             twitter:Status st = check tw->tweet(payload);
              json myJson = {
                  text: payload,
                  id: st.id,
@@ -1104,7 +1104,7 @@ function doTweet() {
    http:Response hResp = check homer->get("/quote");
    string payload = check hResp.getTextPayload();
    if (!payload.contains("#ballerina")){ payload = payload+" #ballerina";}
-   _ = twitter->tweet(payload);
+   _ = tw->tweet(payload);
 }
 ```
 
@@ -1143,7 +1143,7 @@ import ballerina/http;
 import wso2/twitter;
 import ballerina/config;
 
-endpoint twitter:Client twitter {
+endpoint twitter:Client tw {
  clientId: config:getAsString("clientId"),
  clientSecret: config:getAsString("clientSecret"),
  accessToken: config:getAsString("accessToken"),
@@ -1188,7 +1188,7 @@ function doTweet() {
    http:Response hResp = check homer->get("/quote");
    string payload = check hResp.getTextPayload();
    if (!payload.contains("#ballerina")){ payload = payload+" #ballerina"; }
-   _ = twitter->tweet(payload);
+   _ = tw->tweet(payload);
 }
 ```
 
