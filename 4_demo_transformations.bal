@@ -8,7 +8,7 @@ import ballerina/http;
 import wso2/twitter;
 import ballerina/config;
 
-endpoint twitter:Client twitter {
+endpoint twitter:Client tw {
    clientId: config:getAsString("clientId"),
    clientSecret: config:getAsString("clientSecret"),
    accessToken: config:getAsString("accessToken"),
@@ -31,7 +31,7 @@ service<http:Service> hello bind {port:9090} {
        // transformation on the way to the twitter service - add hashtag 
        if (!payload.contains("#ballerina")){payload=payload+" #ballerina";}
 
-       twitter:Status st = check twitter->tweet(payload);
+       twitter:Status st = check tw->tweet(payload);
 
        // transformation on the way out - generate a JSON and pass it back
        // note that json is a first-class citizen

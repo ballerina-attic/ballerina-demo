@@ -12,7 +12,7 @@ import ballerina/http;
 import wso2/twitter;
 import ballerina/config;
 
-endpoint twitter:Client twitter {
+endpoint twitter:Client tw {
   clientId: config:getAsString("clientId"),
   clientSecret: config:getAsString("clientSecret"),
   accessToken: config:getAsString("accessToken"),
@@ -51,5 +51,5 @@ function doTweet() {
     http:Response hResp = check homer->get("/quote");
     string payload = check hResp.getTextPayload();
     if (!payload.contains("#ballerina")){ payload = payload+" #ballerina"; }
-    _ = twitter->tweet(payload);
+    _ = tw->tweet(payload);
 }

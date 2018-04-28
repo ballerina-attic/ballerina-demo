@@ -21,7 +21,7 @@ import ballerina/config;
 // We need to initialize it with OAuth data from apps.twitter.com.
 // Instead of providing this confidential data in the code
 // we read it from a toml file
-endpoint twitter:Client twitter {
+endpoint twitter:Client tw {
    clientId: config:getAsString("clientId"),
    clientSecret: config:getAsString("clientSecret"),
    accessToken: config:getAsString("accessToken"),
@@ -41,7 +41,7 @@ service<http:Service> hello bind {port:9090} {
        http:Response res;
        string payload = check request.getTextPayload();
        // Use the twitter connector to do the tweet
-       twitter:Status st = check twitter->tweet(payload);
+       twitter:Status st = check tw->tweet(payload);
        // Change the response back
        res.setTextPayload("Tweeted: " + st.text + "\n");
        _ = caller->respond(res);

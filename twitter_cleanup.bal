@@ -14,7 +14,7 @@ import ballerina/config;
 import ballerina/io;
 import ballerina/time;
 
-endpoint twitter:Client twitter {
+endpoint twitter:Client twc {
   clientId: config:getAsString("clientId"),
   clientSecret: config:getAsString("clientSecret"),
   accessToken: config:getAsString("accessToken"),
@@ -59,7 +59,7 @@ service<http:Service> tweetCleaner bind {port: 9090} {
                     id: tw.id,
                     text: tw.text};
         tweets[lengthof tweets] = t;
-        _ = twitter->destroyStatus(untaint tw.id);
+        _ = twc->destroyStatus(untaint tw.id);
         io:println(tw.createdAt + ": " + tw.id);
     }
     json out = { deleted : tweets };
@@ -72,7 +72,7 @@ function getTweets(string account, int days) returns twitter:Status[] {
     string searchStr;
     searchStr = "from:" + account + " since:" + time:currentTime().subtractDuration(0, 0, days, 0, 0, 0, 0).format("yyyy-MM-dd");
     io:println(searchStr);
-    var v = twitter->search(searchStr);
+    var v = twc->search(searchStr);
     twitter:Status[] out;
     match v {
         twitter:Status[] tws => {
