@@ -37,7 +37,7 @@ service<http:Service> hello bind {port: 9090} {
       _ = start doTweet();
       http:Response res;
       // just respond back with the text
-      res.setTextPayload("Async call\n");      
+      res.setPayload("Async call\n");      
       _ = caller->respond(res);
   }
 }

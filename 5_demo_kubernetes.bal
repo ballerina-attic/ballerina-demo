@@ -69,7 +69,7 @@ service<http:Service> hello bind listener {
            agent: "ballerina"
        };
       
-       res.setJsonPayload(myJson);
+       res.setPayload(myJson);
 
        _ = caller->respond(res);
    } 

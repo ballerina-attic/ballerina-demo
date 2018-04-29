@@ -46,7 +46,7 @@ service<http:Service> hello bind {port:9090} {
           id: st.id,
           agent: "ballerina"
       };
-      res.setJsonPayload(myJson);
+      res.setPayload(myJson);
 
       _ = caller->respond(res);
   }
