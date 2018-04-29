@@ -244,7 +244,7 @@ service<http:Service> hello bind {port:9090} {
       // Create the Response object
       http:Response res;
       // Put the data into it
-      res.setTextPayload("Hello World!\n");
+      res.setPayload("Hello World!\n");
       // Send it back. -> means remote call (. means local)
       // _ means ignore the value that the call returns
       _ = caller->respond(res);
@@ -307,7 +307,7 @@ In the hello function, get the payload as string (filter out possible errors):
 Then add the name into the output string:
 
 ```ballerina
-      response.setTextPayload("Hello " + payload + "!\n");
+      response.setPayload("Hello " + payload + "!\n");
 ```
 
 Your final code should be (see comments for the new lines that you add at this stage):
@@ -349,7 +349,7 @@ service<http:Service> hello bind {port:9090} {
       http:Response res;
 
       // use it in the response
-      res.setTextPayload("Hello "+payload+"!\n");
+      res.setPayload("Hello "+payload+"!\n");
 
       _ = caller->respond(res);
   }
@@ -475,7 +475,7 @@ service<http:Service> hello bind {port:9090} {
       twitter:Status st = check tw->tweet(payload);
 
       // Change the response back
-      res.setTextPayload("Tweeted: " + st.text);
+      res.setPayload("Tweeted: " + st.text);
 
       _ = caller->respond(res);
   }
@@ -524,7 +524,7 @@ And obviously it makes sense to return not just a string but a meaningful JSON w
           agent: "ballerina"
       };
 
-      res.setJsonPayload(myJson);
+      res.setPayload(myJson);
 ```
 
 Go ahead and run it:
@@ -593,7 +593,7 @@ service<http:Service> hello bind {port:9090} {
       };
 
       // pass back JSON instead of text
-      res.setJsonPayload(myJson);
+      res.setPayload(myJson);
 
       _ = caller->respond(res);
   }
@@ -748,7 +748,7 @@ service<http:Service> hello bind listener {
           agent: "ballerina"
       };
 
-      res.setJsonPayload(myJson);
+      res.setPayload(myJson);
       _ = caller->respond(res);
   }
 }
@@ -925,7 +925,7 @@ service<http:Service> hello bind {port:9090} {
          agent: "ballerina"
      };
 
-     res.setJsonPayload(myJson);
+     res.setPayload(myJson);
      _ = caller->respond(res);
  }
 }
@@ -983,10 +983,10 @@ match v {
            id: st.id,
            agent: "ballerina"
        };
-       res.setJsonPayload(myJson);
+       res.setPayload(myJson);
    }
    error err => {
-       res.setTextPayload("Circuit is open. Invoking default behavior.\n");
+       res.setPayload("Circuit is open. Invoking default behavior.\n");
    }
 }
 ```
@@ -1058,11 +1058,11 @@ service<http:Service> hello bind {port: 9090} {
                  id: st.id,
                  agent: "ballerina"
              };
-             res.setJsonPayload(myJson);
+             res.setPayload(myJson);
          }
          error err => {
              // this block gets invoked if there is error or if circuit breaker is Open
-             res.setTextPayload("Circuit is open. Invoking default behavior.\n");
+             res.setPayload("Circuit is open. Invoking default behavior.\n");
          }
      }
      _ = caller->respond(res);
@@ -1122,7 +1122,7 @@ And we use the start keyword to invoke the function in a separate thread asynchr
  hi (endpoint caller, http:Request request) {
      _ = start doTweet();
      http:Response res;
-     res.setTextPayload("Async call\n");     
+     res.setPayload("Async call\n");     
      _ = caller->respond(res);
  }
  ```
@@ -1173,7 +1173,7 @@ service<http:Service> hello bind {port: 9090} {
      http:Response res;
 
      // just respond back with the text
-     res.setTextPayload("Async call\n");     
+     res.setPayload("Async call\n");     
 
      _ = caller->respond(res);
  }
@@ -1240,6 +1240,20 @@ Now open the yaml and observe the service and two resources:
 ```
 $ code demo.swagger.yaml
 ```
+
+
+## Sequence Diagrammatic
+
+Sequence diagrams have proven to be the best way to document integration projects (remember how we have been using them to illustrate each and every stage of this demo in the slide deck?) 
+
+Ballerina’s syntax is designed around sequence diagrams, and subsequently the way a developer thinks when writing Ballerina code encourages strong interaction best practices.
+
+Ballerina tooling is making understanding the projects easier by automatically generating sequence diagrams for your code. In VS Code, click the **Ballerina: Show Diagram** button at the top right: ![Ballerina Show Diagram button](img/image_12.png)
+
+Here's the automated diagram that Ballerina generated for the doTweet function that we just used:
+
+![Integration project sequence diagram generayed by Ballerina](img/image_13.png)
+
 
 # Exit slides
 

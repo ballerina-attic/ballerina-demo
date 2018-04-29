@@ -29,7 +29,7 @@ service<http:Service> hello bind {port:9090} {
        string payload = check request.getTextPayload();
        http:Response res;
        // use it in the response
-       res.setTextPayload("Hello "+payload+"!\n");
+       res.setPayload("Hello "+payload+"!\n");
        _ = caller->respond(res);
    }
 }

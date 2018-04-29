@@ -51,10 +51,10 @@ service<http:Service> hello bind {port: 9090} {
                   id: st.id,
                   agent: "ballerina"
               };
-              res.setJsonPayload(myJson);
+              res.setPayload(myJson);
           }
           error err => {
-              res.setTextPayload("Circuit is open. Invoking default behavior.\n");
+              res.setPayload("Circuit is open. Invoking default behavior.\n");
           }
       }
 
