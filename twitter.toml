@@ -1,6 +1,6 @@
 # Ballerina demo config file
 # Put the actual values from apps.twitter.com
-consumerKey = ""
-consumerSecret = ""
-accessToken = ""
-accessTokenSecret = ""
+clientId=""
+clientSecret=""
+accessToken=""
+accessTokenSecret=""
