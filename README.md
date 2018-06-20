@@ -14,7 +14,7 @@ Target audience: technical: meetups, technical customers/partners - this is a de
 
 Get the latest download from [ballerina.io](http://ballerina.io)
 
-Currently tested on 0.970.0
+Currently tested on 0.975.0
 
 Add Ballerina **bin** folder to your $PATH
 
@@ -22,7 +22,7 @@ Check it by opening the terminal window and running:
 
 ```
 $ ballerina version
-Ballerina 0.970.0
+Ballerina 0.975.0
 ```
 
 ## VS Code
@@ -936,7 +936,7 @@ Now we can quote Homer on Twitter:
 ```
 $ curl -X POST localhost:9090
 {"text":"It’s not easy to juggle a pregnant wife and a troubled child, but somehow I managed to fit in eight hours of TV a day.","id":978405287928348672,"agent":"Ballerina"} 
-$ curl -X POST localhost:9090/tweet
+$ curl -X POST localhost:9090
 {"text":"Just because I don’t care doesn’t mean that I don’t understand.","id":978405308232957952,"agent":"Ballerina"}
 ```
 
@@ -1073,16 +1073,16 @@ service<http:Service> hello bind {port: 9090} {
  Let’s go ahead and invoke. Notice how not only an error/timeout leads to our default handler ("Circuit is open. Invoking default behavior.") - but how the next few calls after it (next 3 seconds in our case) are automatically using that path without invoking the backend:
 
 ```
-$ curl -X POST localhost:9090/tweet
+$ curl -X POST localhost:9090
 {"text":"Marge, don't discourage the boy! Weaseling out of things is important to learn. It's what separates us from the animals! Except the weasel. #ballerina","id":986740441532936192,"agent":"ballerina"}
 
-$ curl -X POST localhost:9090/tweet
+$ curl -X POST localhost:9090
 Circuit is open. Invoking default behavior.
 
-$ curl -X POST localhost:9090/tweet
+$ curl -X POST localhost:9090
 Circuit is open. Invoking default behavior.
 
-$ curl -X POST localhost:9090/tweet
+$ curl -X POST localhost:9090
 {"text":"Marge, don't discourage the boy! Weaseling out of things is important to learn. It's what separates us from the animals! Except the weasel. #ballerina","id":986740441532936192,"agent":"ballerina"}
 ```
 
