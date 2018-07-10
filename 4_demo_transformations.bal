@@ -42,7 +42,7 @@ service<http:Service> hello bind {port:9090} {
            agent: "ballerina"
        };
        // pass back JSON instead of text
-       res.setPayload(myJson);
+       res.setPayload(untaint myJson);
 
        _ = caller->respond(res);
    } 
