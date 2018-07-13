@@ -14,7 +14,7 @@ Target audience: technical: meetups, technical customers/partners - this is a de
 
 Get the latest download from [ballerina.io](http://ballerina.io)
 
-Currently tested on 0.975.0
+Currently tested on 0.980.0
 
 Add Ballerina **bin** folder to your $PATH
 
@@ -22,7 +22,7 @@ Check it by opening the terminal window and running:
 
 ```
 $ ballerina version
-Ballerina 0.975.0
+Ballerina 0.980.0
 ```
 
 ## VS Code
@@ -307,7 +307,7 @@ In the hello function, get the payload as string (filter out possible errors):
 Then add the name into the output string:
 
 ```ballerina
-      response.setPayload("Hello " + payload + "!\n");
+      response.setPayload("Hello " + untaint payload + "!\n");
 ```
 
 Your final code should be (see comments for the new lines that you add at this stage):
@@ -349,7 +349,7 @@ service<http:Service> hello bind {port:9090} {
       http:Response res;
 
       // use it in the response
-      res.setPayload("Hello "+payload+"!\n");
+      res.setPayload("Hello "+untaint payload+"!\n");
 
       _ = caller->respond(res);
   }
@@ -524,7 +524,7 @@ And obviously it makes sense to return not just a string but a meaningful JSON w
           agent: "ballerina"
       };
 
-      res.setPayload(myJson);
+      res.setPayload(untaint myJson);
 ```
 
 Go ahead and run it:
@@ -593,7 +593,7 @@ service<http:Service> hello bind {port:9090} {
       };
 
       // pass back JSON instead of text
-      res.setPayload(myJson);
+      res.setPayload(untaint myJson);
 
       _ = caller->respond(res);
   }
@@ -748,7 +748,7 @@ service<http:Service> hello bind listener {
           agent: "ballerina"
       };
 
-      res.setPayload(myJson);
+      res.setPayload(untaint myJson);
       _ = caller->respond(res);
   }
 }
@@ -758,16 +758,18 @@ That is it - let’s go ahead and build it:
 
 ```
 $ ballerina build demo.bal
-@kubernetes:Service                      - complete 1/1
-@kubernetes:ConfigMap                    - complete 1/1
-@kubernetes:Docker                       - complete 3/3
-@kubernetes:Deployment                   - complete 1/1
-```
+Compiling source
+    demo.bal
 
-Run following command to deploy kubernetes artifacts:
+Generating executable
+    ./target/demo.balx
+	@kubernetes:Service 			 - complete 1/1
+	@kubernetes:ConfigMap 			 - complete 1/1
+	@kubernetes:Deployment 			 - complete 1/1
+	@kubernetes:Docker 			 - complete 3/3
 
-```
-kubectl apply -f /Users/DSotnikov/Ballerina/Projects/apr-23/demo/kubernetes/
+	Run following command to deploy kubernetes artifacts:
+	kubectl apply -f /Users/anuruddha/workspace/ballerinax/ballerina-demo/demo/target/kubernetes/demo
 ```
 
 You can see that it created a folder called kubernetes and put the deployment artifacts and the docker image in there:
@@ -776,22 +778,25 @@ You can see that it created a folder called kubernetes and put the deployment ar
 $ tree
 .
 ├── demo.bal
-├── demo.balx
-├── kubernetes
-│   ├── demo_config_map.yaml
-│   ├── demo_deployment.yaml
-│   ├── demo_svc.yaml
-│   └── docker
-│       └── Dockerfile
+├── target
+│   ├── Ballerina.lock
+│   ├── demo.balx
+│   └── kubernetes
+│       └── demo
+│           ├── demo_config_map.yaml
+│           ├── demo_deployment.yaml
+│           ├── demo_svc.yaml
+│           └── docker
+│               └── Dockerfile
 └── twitter.toml
 ```
 
 And you can deploy it to Kubernetes:
 
 ```
-$ kubectl apply -f kubernetes/
+$ kubectl apply -f target/kubernetes/demo/
 configmap "hello-ballerina-conf-config-map" created
-deployment "ballerina-demo" created
+deployment.extensions "ballerina-demo" created
 service "ballerina-demo" created
 ```
 
@@ -832,8 +837,9 @@ $ curl -d "Tweet from Kubernetes" -X POST  http://192.168.99.100:31977
 Now delete the Kubernetes deployment:
 
 ```
-$ kubectl delete -f kubernetes/
-deployment "ballerina-demo" deleted
+$ kubectl delete -f target/kubernetes/demo/
+configmap "hello-ballerina-conf-config-map" deleted
+deployment.extensions "ballerina-demo" deleted
 service "ballerina-demo" deleted
 ```
 
@@ -925,7 +931,7 @@ service<http:Service> hello bind {port:9090} {
          agent: "ballerina"
      };
 
-     res.setPayload(myJson);
+     res.setPayload(untaint myJson);
      _ = caller->respond(res);
  }
 }
@@ -1058,7 +1064,7 @@ service<http:Service> hello bind {port: 9090} {
                  id: st.id,
                  agent: "ballerina"
              };
-             res.setPayload(myJson);
+             res.setPayload(untaint myJson);
          }
          error err => {
              // this block gets invoked if there is error or if circuit breaker is Open
