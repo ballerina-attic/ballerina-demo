@@ -36,7 +36,7 @@ script:
 
 - ballerina build 6_demo_external_endpoint.bal
 
-- ballerina build 7_demo_circuit_breaker.bals
+- ballerina build 7_demo_circuit_breaker.bal
 
 - ballerina build 8_demo_async.bal
 
