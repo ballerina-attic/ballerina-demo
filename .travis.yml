@@ -24,4 +24,19 @@ script:
 
 - ballerina version
 
-- ballerina build
+- ballerina build 1_demo_hello.bal
+
+- ballerina build 2_demo_annotations.bal
+
+- ballerina build 3_demo_connector.bal
+
+- ballerina build 4_demo_transformations.bal
+
+- ballerina build 5_demo_kubernetes.bal
+
+- ballerina build 6_demo_external_endpoint.bal
+
+- ballerina build 7_demo_circuit_breaker.bals
+
+- ballerina build 8_demo_async.bal
+
