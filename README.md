@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ballerina-guides/ballerina-demo.svg?branch=master)](https://travis-ci.org/ballerina-guides/ballerina-demo)
+
 # Standard Ballerina Demo
 
 Total time: 30-60 minutes (including slides) depending on whether you type it all or copy from the pre-created script files, how fast you can do it, how many questions you get asked, and so on.
