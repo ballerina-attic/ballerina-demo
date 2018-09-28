@@ -16,7 +16,7 @@ Target audience: technical: meetups, technical customers/partners - this is a de
 
 Get the latest download from [ballerina.io](http://ballerina.io)
 
-Currently tested on 0.980.0
+Currently tested on 0.982.0
 
 Add Ballerina **bin** folder to your $PATH
 
@@ -24,7 +24,7 @@ Check it by opening the terminal window and running:
 
 ```
 $ ballerina version
-Ballerina 0.980.0
+Ballerina 0.982.0
 ```
 
 ## VS Code
@@ -60,11 +60,22 @@ You are provided with a list of Default Settings. Copy any setting that you want
 
 ## Docker
 
-Install Docker with Kubernetes (this requires Edge edition with Kubernetes enabled): [https://blog.docker.com/2018/01/docker-mac-kubernetes/](https://blog.docker.com/2018/01/docker-mac-kubernetes/) 
+Install Docker with Kubernetes [https://store.docker.com/search?type=edition&offering=community](https://store.docker.com/search?type=edition&offering=community)
 
 Demo tested on:
 
 ![image alt text](img/image_3.png)
+
+Make sure you have enabled Kubernetes in Docker.
+Go to Docker preferences
+
+![docker menu to get docker preferences](img/docker_menu.png)
+
+And enable Kubernetes from the Kubernetes tab.
+
+![docker preferences window](img/docker_preferences.png)
+
+Enabling Kubernetes will take a minuite or two.
 
 ## Twitter
 
@@ -254,7 +265,7 @@ service<http:Service> hello bind {port:9090} {
 }
 ```
 
-In VS Code’s Terminal pane run:
+In VS Code’s Terminal pane, change the directory to `demo` by `cd demo`, and then run:
 
 ```
 $ ballerina run demo.bal
@@ -487,7 +498,7 @@ service<http:Service> hello bind {port:9090} {
 Go ahead and run it and this time pass the config file:
 
 ```
-$ ballerina run demo.bal --config twitter.toml
+$ ballerina run --config twitter.toml demo.bal 
 ```
 
 Demo the empty twitter timeline:
@@ -532,7 +543,7 @@ And obviously it makes sense to return not just a string but a meaningful JSON w
 Go ahead and run it:
 
 ```
-$ ballerina run demo.bal --config twitter.toml
+$ ballerina run --config twitter.toml demo.bal 
 ballerina: initiating service(s) in 'demo.bal'
 ballerina: started HTTP/WS endpoint 0.0.0.0:9090
 ```
@@ -764,14 +775,18 @@ Compiling source
     demo.bal
 
 Generating executable
-    ./target/demo.balx
-	@kubernetes:Service 			 - complete 1/1
-	@kubernetes:ConfigMap 			 - complete 1/1
-	@kubernetes:Deployment 			 - complete 1/1
-	@kubernetes:Docker 			 - complete 3/3
+    demo.balx
+        @kubernetes:Service                      - complete 1/1
+        @kubernetes:ConfigMap                    - complete 1/1
+        @kubernetes:Deployment                   - complete 1/1
+        @kubernetes:Docker                       - complete 3/3
+        @kubernetes:Helm                         - complete 1/1
 
-	Run following command to deploy kubernetes artifacts:
-	kubectl apply -f /Users/anuruddha/workspace/ballerinax/ballerina-demo/demo/target/kubernetes/demo
+        Run the following command to deploy the Kubernetes artifacts:
+        kubectl apply -f /Users/ballerina-user/demo-proj/demo/kubernetes/
+
+        Run the following command to install the application using Helm:
+        helm install --name ballerina-demo /Users/ballerina-user/demo-proj/demo/kubernetes/ballerina-demo
 ```
 
 You can see that it created a folder called kubernetes and put the deployment artifacts and the docker image in there:
@@ -780,23 +795,26 @@ You can see that it created a folder called kubernetes and put the deployment ar
 $ tree
 .
 ├── demo.bal
-├── target
-│   ├── Ballerina.lock
-│   ├── demo.balx
-│   └── kubernetes
-│       └── demo
-│           ├── demo_config_map.yaml
-│           ├── demo_deployment.yaml
-│           ├── demo_svc.yaml
-│           └── docker
-│               └── Dockerfile
+├── demo.balx
+├── kubernetes
+│   ├── ballerina-demo
+│   │   ├── Chart.yaml
+│   │   └── templates
+│   │       ├── demo_config_map.yaml
+│   │       ├── demo_deployment.yaml
+│   │       └── demo_svc.yaml
+│   ├── demo_config_map.yaml
+│   ├── demo_deployment.yaml
+│   ├── demo_svc.yaml
+│   └── docker
+│       └── Dockerfile
 └── twitter.toml
 ```
 
 And you can deploy it to Kubernetes:
 
 ```
-$ kubectl apply -f target/kubernetes/demo/
+$ kubectl apply -f kubernetes/
 configmap "hello-ballerina-conf-config-map" created
 deployment.extensions "ballerina-demo" created
 service "ballerina-demo" created
@@ -839,7 +857,7 @@ $ curl -d "Tweet from Kubernetes" -X POST  http://192.168.99.100:31977
 Now delete the Kubernetes deployment:
 
 ```
-$ kubectl delete -f target/kubernetes/demo/
+$ kubectl delete -f kubernetes
 configmap "hello-ballerina-conf-config-map" deleted
 deployment.extensions "ballerina-demo" deleted
 service "ballerina-demo" deleted
@@ -967,7 +985,7 @@ We make the endpoint initialization include circuit breaker logic:
 endpoint http:Client homer {
  url: "http://www.simpsonquotes.xyz",
  circuitBreaker: {
-     failureThreshold: 0,
+     failureThreshold: 0.0,
      resetTimeMillis: 3000,
      statusCodes: [500, 501, 502]
  },
@@ -1022,7 +1040,7 @@ import ballerina/config;
 endpoint http:Client homer {
  url: "http://www.simpsonquotes.xyz",
  circuitBreaker: {
-     failureThreshold: 0,
+     failureThreshold: 0.0,
      resetTimeMillis: 3000,
      statusCodes: [500, 501, 502]
  },
