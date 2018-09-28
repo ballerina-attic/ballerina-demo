@@ -12,7 +12,7 @@ import ballerina/config;
 endpoint http:Client homer {
   url: "http://www.simpsonquotes.xyz",
   circuitBreaker: {
-      failureThreshold: 0,
+      failureThreshold: 0.0,
       resetTimeMillis: 3000,
       statusCodes: [500, 501, 502]
   },

@@ -33,10 +33,10 @@ service<http:Service> hello bind {port: 9090} {
       methods: ["POST"]
   }
   hi (endpoint caller, http:Request request) {
-      // start is the keyword to make the call asynchronously
+      // start is the keyword to make the call asynchronously.
       _ = start doTweet();
       http:Response res;
-      // just respond back with the text
+      // just respond back with the text.
       res.setPayload("Async call\n");      
       _ = caller->respond(res);
   }
@@ -47,7 +47,7 @@ service<http:Service> hello bind {port: 9090} {
 function doTweet() {
     // We can remove all the error handling here because we call
     // it asynchronously, don't want to get any output and
-    // don't care if it takes too long or fails
+    // don't care if it takes too long or fails.
     http:Response hResp = check homer->get("/quote");
     string payload = check hResp.getTextPayload();
     if (!payload.contains("#ballerina")){ payload = payload+" #ballerina"; }
