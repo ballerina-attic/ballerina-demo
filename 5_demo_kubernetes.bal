@@ -26,9 +26,9 @@ endpoint twitter:Client tw {
    clientConfig:{}   
 };
 
-// Now instead of inline {port:9090} bind we create a separate endpoint
+// Now instead of inline {port:9090} bind we create a separate endpoint.
 // We need this so we can add Kubernetes notation to it and tell the compiler
-// to generate a Kubernetes services (expose it to the outside world)
+// to generate a Kubernetes services (expose it to the outside world).
 @kubernetes:Service {
  serviceType: "NodePort",
  name: "ballerina-demo"  
@@ -38,12 +38,12 @@ endpoint http:Listener listener {
 };
 
 // Instruct the compiler to generate Kubernetes deployment artifacts
-// and a docker image out of this Ballerina service
+// and a docker image out of this Ballerina service.
 @kubernetes:Deployment {
  image: "demo/ballerina-demo",
  name: "ballerina-demo"
 }
-// Pass our config file into the image
+// Pass our config file into the image.
 @kubernetes:ConfigMap{
    ballerinaConf: "twitter.toml"
 }

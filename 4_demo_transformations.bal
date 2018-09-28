@@ -28,20 +28,20 @@ service<http:Service> hello bind {port:9090} {
        http:Response res;
        string payload = check request.getTextPayload();
 
-       // transformation on the way to the twitter service - add hashtag 
+       // Transformation on the way to the twitter service - add hashtag.
        if (!payload.contains("#ballerina")){payload=payload+" #ballerina";}
 
        twitter:Status st = check tw->tweet(payload);
 
-       // transformation on the way out - generate a JSON and pass it back
+       // Transformation on the way out - generate a JSON and pass it back
        // note that json is a first-class citizen
-       // and we can construct it from variables, data, fields
+       // and we can construct it from variables, data, and fields.
        json myJson = {
            text: payload,
            id: st.id,
            agent: "ballerina"
        };
-       // pass back JSON instead of text
+       // Pass back JSON instead of text.
        res.setPayload(untaint myJson);
 
        _ = caller->respond(res);

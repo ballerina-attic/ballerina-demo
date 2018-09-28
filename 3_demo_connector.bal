@@ -16,11 +16,11 @@ import wso2/twitter;
 // this package helps read config files
 import ballerina/config;
 
-// twitter package defines this type of endpoint 
+// Twitter package defines this type of endpoint 
 // that incorporates the twitter API.
 // We need to initialize it with OAuth data from apps.twitter.com.
 // Instead of providing this confidential data in the code
-// we read it from a toml file
+// we read it from a toml file.
 endpoint twitter:Client tw {
    clientId: config:getAsString("clientId"),
    clientSecret: config:getAsString("clientSecret"),
