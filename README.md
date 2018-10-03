@@ -81,7 +81,6 @@ Enabling Kubernetes will take a minuite or two.
 
 The demo is using Twitter account to send tweets.
 
-If you know Dmitry and want to re-use his account [https://twitter.com/B7aDemo](https://twitter.com/B7aDemo) - get the corresponding twitter.toml config file from him.
 
 Before starting your demo, delete all the old tweets - manually or by using **twitter_cleanup.bal** script that ships with the demo:
 
