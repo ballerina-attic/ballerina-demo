@@ -2,7 +2,7 @@
 // call it asynchronously
 
 // To run it:
-// ballerina run demo_async.bal --config twitter.toml
+// ballerina run  --config twitter.toml demo_async.bal
 // To invoke:
 // curl -X POST localhost:9090
 // Invoke many times to show how quickly the function returns
@@ -12,44 +12,50 @@ import ballerina/http;
 import wso2/twitter;
 import ballerina/config;
 
-endpoint twitter:Client tw {
-  clientId: config:getAsString("clientId"),
-  clientSecret: config:getAsString("clientSecret"),
-  accessToken: config:getAsString("accessToken"),
-  accessTokenSecret: config:getAsString("accessTokenSecret"),
-  clientConfig: {}  
-};
+twitter:Client tw = new({
+        clientId: config:getAsString("clientId"),
+        clientSecret: config:getAsString("clientSecret"),
+        accessToken: config:getAsString("accessToken"),
+        accessTokenSecret: config:getAsString("accessTokenSecret"),
+        clientConfig: {}
+    });
 
-endpoint http:Client homer {
-  url: "http://www.simpsonquotes.xyz"
-};
+http:Client homer = new("http://www.simpsonquotes.xyz");
 
 @http:ServiceConfig {
-  basePath: "/"
+    basePath: "/"
 }
-service<http:Service> hello bind {port: 9090} {
-  @http:ResourceConfig {
-      path: "/",
-      methods: ["POST"]
-  }
-  hi (endpoint caller, http:Request request) {
-      // start is the keyword to make the call asynchronously.
-      _ = start doTweet();
-      http:Response res;
-      // just respond back with the text.
-      res.setPayload("Async call\n");      
-      _ = caller->respond(res);
-  }
+service hello on new http:Listener(9090) {
+    @http:ResourceConfig {
+        path: "/",
+        methods: ["POST"]
+    }
+    resource function hi (http:Caller caller, http:Request request) {
+        // start is the keyword to make the call asynchronously.
+        _ = start doTweet();
+        http:Response res = new;
+        // just respond back with the text.
+        res.setPayload("Async call\n");
+        _ = caller->respond(res);
+    }
 }
 
-// Move the logic of getting the quote and pushing it to twitter 
+// Move the logic of getting the quote and pushing it to twitter
 // into a separate function to be called asynchronously.
 function doTweet() {
     // We can remove all the error handling here because we call
     // it asynchronously, don't want to get any output and
     // don't care if it takes too long or fails.
-    http:Response hResp = check homer->get("/quote");
-    string payload = check hResp.getTextPayload();
-    if (!payload.contains("#ballerina")){ payload = payload+" #ballerina"; }
-    _ = tw->tweet(payload);
+    var hResp = homer->get("/quote");
+    if (hResp is http:Response) {
+        var payload = hResp.getTextPayload();
+        if (payload is string) {
+            if (!payload.contains("#ballerina")){ payload = payload+" #ballerina"; }
+            _ = tw->tweet(payload);
+        } else {
+            panic payload;
+        }
+    } else {
+        panic hResp;
+    }
 }

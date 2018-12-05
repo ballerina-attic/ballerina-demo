@@ -2,7 +2,7 @@
 // to compensate for slowness use circuit breaker
 
 // To run it:
-// ballerina run demo.bal --config twitter.toml
+// ballerina run --config twitter.toml demo.bal
 // To invoke:
 // curl -X POST localhost:9090
 // Invoke a few times to show that it is often slow
@@ -11,43 +11,54 @@ import ballerina/http;
 import wso2/twitter;
 import ballerina/config;
 
-endpoint http:Client homer {
-  url: "http://www.simpsonquotes.xyz"
-};
+http:Client homer = new("http://www.simpsonquotes.xyz");
 
-endpoint twitter:Client tw {
+twitter:Client tw = new({
   clientId: config:getAsString("clientId"),
   clientSecret: config:getAsString("clientSecret"),
   accessToken: config:getAsString("accessToken"),
   accessTokenSecret: config:getAsString("accessTokenSecret"),
   clientConfig: {}  
-};
+});
 
 @http:ServiceConfig {
   basePath: "/"
 }
-service<http:Service> hello bind {port:9090} {
-  @http:ResourceConfig {
+service hello on new http:Listener(9090) {
+    @http:ResourceConfig {
       path: "/",
       methods: ["POST"]
-  }
-  hi (endpoint caller, http:Request request) {
-      http:Response res;
+    }
+    resource function hi (http:Caller caller, http:Request request) {
 
-      http:Response hResp = check homer->get("/quote");
-      string status = check hResp.getTextPayload();
+        var hResp = homer->get("/quote");
+        if (hResp is http:Response) {
+            var status = hResp.getTextPayload();
+            if (status is string) {
+                if (!status.contains("#ballerina")) {
+                    status = status + " #ballerina";
+                }
 
-      if (!status.contains("#ballerina")){status=status+" #ballerina";}
+                var st = tw->tweet(status);
+                if (st is twitter:Status) {
 
-      twitter:Status st = check tw->tweet(status);
+                    json myJson = {
+                        text: status,
+                        id: st.id,
+                        agent: "ballerina"
+                    };
+                    http:Response res = new;
+                    res.setPayload(untaint myJson);
 
-      json myJson = {
-          text: status,
-          id: st.id,
-          agent: "ballerina"
-      };
-      res.setPayload(untaint myJson);
-
-      _ = caller->respond(res);
-  }
+                    _ = caller->respond(res);
+                } else {
+                    panic st;
+                }
+            } else {
+                panic status;
+            }
+        } else {
+            panic hResp;
+        }
+    }
 }
