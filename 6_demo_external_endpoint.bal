@@ -7,9 +7,9 @@
 // curl -X POST localhost:9090
 // Invoke a few times to show that it is often slow
 
+import ballerina/config;
 import ballerina/http;
 import wso2/twitter;
-import ballerina/config;
 
 http:Client homer = new("http://www.simpsonquotes.xyz");
 
@@ -29,36 +29,25 @@ service hello on new http:Listener(9090) {
       path: "/",
       methods: ["POST"]
     }
-    resource function hi (http:Caller caller, http:Request request) {
+    resource function hi (http:Caller caller, http:Request request) returns error? {
 
-        var hResp = homer->get("/quote");
-        if (hResp is http:Response) {
-            var status = hResp.getTextPayload();
-            if (status is string) {
-                if (!status.contains("#ballerina")) {
-                    status = status + " #ballerina";
-                }
-
-                var st = tw->tweet(status);
-                if (st is twitter:Status) {
-
-                    json myJson = {
-                        text: status,
-                        id: st.id,
-                        agent: "ballerina"
-                    };
-                    http:Response res = new;
-                    res.setPayload(untaint myJson);
-
-                    _ = caller->respond(res);
-                } else {
-                    panic st;
-                }
-            } else {
-                panic status;
-            }
-        } else {
-            panic hResp;
+        var hResp = check homer->get("/quote");
+        var status = check hResp.getTextPayload();
+        if (!status.contains("#ballerina")) {
+            status = status + " #ballerina";
         }
+
+        var st = check tw->tweet(status);
+
+        json myJson = {
+            text: status,
+            id: st.id,
+            agent: "ballerina"
+        };
+        http:Response res = new;
+        res.setPayload(untaint myJson);
+
+        _ = check caller->respond(res);
+        return;
     }
 }

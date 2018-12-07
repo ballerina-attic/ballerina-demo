@@ -14,13 +14,14 @@ service hello on new http:Listener(9090) {
   // The service exposes one resource (hi).
   // It gets the endpoint that called it - so we can pass response back
   // and the request object to extract payload, etc.
-   resource function hi (http:Caller caller, http:Request request) {
+   resource function hi (http:Caller caller, http:Request request) returns error? {
         // Create the Response object.
         http:Response res = new;
         // Set the payload.
         res.setPayload("Hello World!\n");
         // Send the response back. `->` means remote call (`.` means local)
         // _ means ignore the value that the call returns.
-        _ = caller->respond(res);
+        _ = check caller->respond(res);
+       return;
    }
 }

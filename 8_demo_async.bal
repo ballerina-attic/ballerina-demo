@@ -2,15 +2,15 @@
 // call it asynchronously
 
 // To run it:
-// ballerina run  --config twitter.toml demo_async.bal
+// ballerina run --config twitter.toml demo_async.bal
 // To invoke:
 // curl -X POST localhost:9090
 // Invoke many times to show how quickly the function returns
 // then go to the browser and refresh a few times to see how gradually new tweets appear
 
+import ballerina/config;
 import ballerina/http;
 import wso2/twitter;
-import ballerina/config;
 
 twitter:Client tw = new({
         clientId: config:getAsString("clientId"),
@@ -30,32 +30,26 @@ service hello on new http:Listener(9090) {
         path: "/",
         methods: ["POST"]
     }
-    resource function hi (http:Caller caller, http:Request request) {
+    resource function hi (http:Caller caller, http:Request request) returns error? {
         // start is the keyword to make the call asynchronously.
         _ = start doTweet();
         http:Response res = new;
         // just respond back with the text.
         res.setPayload("Async call\n");
-        _ = caller->respond(res);
+        _ = check caller->respond(res);
+        return;
     }
 }
 
 // Move the logic of getting the quote and pushing it to twitter
 // into a separate function to be called asynchronously.
-function doTweet() {
+function doTweet() returns error? {
     // We can remove all the error handling here because we call
     // it asynchronously, don't want to get any output and
     // don't care if it takes too long or fails.
-    var hResp = homer->get("/quote");
-    if (hResp is http:Response) {
-        var payload = hResp.getTextPayload();
-        if (payload is string) {
-            if (!payload.contains("#ballerina")){ payload = payload+" #ballerina"; }
-            _ = tw->tweet(payload);
-        } else {
-            panic payload;
-        }
-    } else {
-        panic hResp;
-    }
+    var hResp = check homer->get("/quote");
+    var payload = check hResp.getTextPayload();
+    if (!payload.contains("#ballerina")){ payload = payload+" #ballerina"; }
+    _ = check tw->tweet(payload);
+    return;
 }

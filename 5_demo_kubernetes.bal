@@ -12,19 +12,19 @@
 // To clean up:
 // kubectl delete -f kubernetes/
 
+import ballerina/config;
 import ballerina/http;
 import wso2/twitter;
-import ballerina/config;
 // Add kubernetes package
 import ballerinax/kubernetes;
 
 twitter:Client tw = new({
-        clientId: config:getAsString("clientId"),
-        clientSecret: config:getAsString("clientSecret"),
-        accessToken: config:getAsString("accessToken"),
-        accessTokenSecret: config:getAsString("accessTokenSecret"),
-        clientConfig:{}
-    });
+    clientId: config:getAsString("clientId"),
+    clientSecret: config:getAsString("clientSecret"),
+    accessToken: config:getAsString("accessToken"),
+    accessTokenSecret: config:getAsString("accessTokenSecret"),
+    clientConfig:{}
+});
 
 // Now instead of inline {port:9090} bind we create a separate endpoint.
 // We need this so we can add Kubernetes notation to it and tell the compiler
@@ -53,29 +53,22 @@ service hello on cmdListener {
         path: "/",
         methods: ["POST"]
     }
-    resource function hi (http:Caller caller, http:Request request) {
-        var payload = request.getTextPayload();
-        if (payload is string) {
-            if (!payload.contains("#ballerina")) {
-                payload = payload + " #ballerina";
-            }
+    resource function hi (http:Caller caller, http:Request request) returns error? {
+        string payload = check request.getTextPayload();
 
-            var st = tw->tweet(payload);
-            if (st is twitter:Status) {
-                json myJson = {
-                    text: payload,
-                    id: st.id,
-                    agent: "ballerina"
-                };
+        if (!payload.contains("#ballerina")){payload=payload+" #ballerina";}
 
-                http:Response res = new;
-                res.setPayload(untaint myJson);
-                _ = caller->respond(res);
-            } else {
-                panic st;
-            }
-        } else {
-            panic payload;
-        }
+        twitter:Status st = check tw->tweet(payload);
+
+        json myJson = {
+            text: payload,
+            id: st.id,
+            agent: "ballerina"
+        };
+        http:Response res = new;
+        res.setPayload(untaint myJson);
+
+        _ = check caller->respond(res);
+        return;
     }
 }

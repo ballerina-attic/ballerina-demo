@@ -5,9 +5,9 @@
 // curl -X POST localhost:9090
 // Invoke many times to show how circuit breaker works
 
+import ballerina/config;
 import ballerina/http;
 import wso2/twitter;
-import ballerina/config;
 
 http:Client homer = new("http://www.simpsonquotes.xyz", config={
         circuitBreaker: {
@@ -34,34 +34,27 @@ service hello on new http:Listener(9090) {
         path: "/",
         methods: ["POST"]
     }
-    resource function hi (http:Caller caller, http:Request request) {
+    resource function hi (http:Caller caller, http:Request request) returns error? {
         http:Response res = new;
 
         var v = homer->get("/quote");
         if (v is http:Response) {
-            var payload = v.getTextPayload();
-            if (payload is string) {
-                if (!payload.contains("#ballerina")){
-                    payload=payload+" #ballerina";
-                }
-                var st = tw->tweet(payload);
-                if (st is twitter:Status) {
-                    json myJson = {
-                        text: payload,
-                        id: st.id,
-                        agent: "ballerina"
-                    };
-                    res.setPayload(untaint myJson);
-                } else {
-                    panic st;
-                }
-            } else {
-                panic payload;
+            var payload = check v.getTextPayload();
+            if (!payload.contains("#ballerina")){
+                payload=payload+" #ballerina";
             }
+            var st = check tw->tweet(payload);
+            json myJson = {
+                text: payload,
+                id: st.id,
+                agent: "ballerina"
+            };
+            res.setPayload(untaint myJson);
         } else {
             res.setPayload("Circuit is open. Invoking default behavior.\n");
         }
 
-        _ = caller->respond(res);
+        _ = check caller->respond(res);
+        return;
     }
 }
