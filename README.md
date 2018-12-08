@@ -16,7 +16,7 @@ Target audience: technical: meetups, technical customers/partners - this is a de
 
 Get the latest download from [ballerina.io](http://ballerina.io)
 
-Currently tested on 0.982.0
+Currently tested on 0.990.0
 
 Add Ballerina **bin** folder to your $PATH
 
@@ -24,14 +24,16 @@ Check it by opening the terminal window and running:
 
 ```
 $ ballerina version
-Ballerina 0.982.0
+Ballerina 0.990.0
 ```
 
 ## VS Code
 
 Install VS Code: [https://code.visualstudio.com/](https://code.visualstudio.com/)
 
-Install Ballerina plug in into VS Code by importing the VSIX file:
+Install Ballerina plug in into VS Code through VS Code marketplace or by importing the VSIX file:
+
+![VS code market place](img/vscode_marketplace.png)
 
 ![image alt text](img/image_0.png)
 
@@ -237,30 +239,27 @@ This is the code that you need to type (or grab from 1_demo_hello.bal) and expla
 // ballerina run demo.bal
 // To invoke:
 // curl localhost:9090/hello/hi
-// Ballerina has packages that can be imported
-// This one adds services, endpoints, objects, and
-// annotations for HTTP
 
 import ballerina/http;
 
-// Services, endpoint, resources are built into the language.
-// This one is HTTP (other options include WebSockets, Protobuf, gRPC, etc).
-// We bind it to port 9090
-service<http:Service> hello bind {port:9090} {
+// Services, endpoints, resources are built into the language.
+// This one is a HTTP service (other options include WebSockets, Protobuf, gRPC, etc).
+// We bind it to port 9090.
+service hello on new http:Listener(9090) returns error? {
 
-  // The service exposes one resource (hi)
+  // The service exposes one resource (hi).
   // It gets the endpoint that called it - so we can pass response back
   // and the request object to extract payload, etc.
-  hi (endpoint caller, http:Request request) {
-
-      // Create the Response object.
-      http:Response res;
-      // Put the data into it.
-      res.setPayload("Hello World!\n");
-      // Send the response back. `->` means remote call (`.` means local)
-      // _ means ignore the value that the call returns.
-      _ = caller->respond(res);
-  }
+   resource function hi (http:Caller caller, http:Request request) {
+        // Create the Response object.
+        http:Response res = new;
+        // Set the payload.
+        res.setPayload("Hello World!\n");
+        // Send the response back. `->` means remote call (`.` means local)
+        // _ means ignore the value that the call returns.
+        _ = check caller->respond(res);
+        return;
+   }
 }
 ```
 
@@ -328,6 +327,7 @@ Your final code should be (see comments for the new lines that you add at this s
 // Add annotations for @ServiceConfig & @ResourceConfig
 // to provide custom path and limit to POST
 // Get payload from the POST request
+
 // To run it:
 // ballerina run demo.bal
 // To invoke:
@@ -337,34 +337,28 @@ import ballerina/http;
 
 // Add this annotation to the service to change the base path.
 @http:ServiceConfig {
-  basePath: "/"
+   basePath: "/"
 }
-
-service<http:Service> hello bind {port:9090} {
-
-  // Add this annotation to the resource to change its path
-  // and to limit the calls to POST only.
-  @http:ResourceConfig {
-      path: "/",
-      methods: ["POST"]
-  }
-
-  hi (endpoint caller, http:Request request) {
-
-      // Extract the payload from the request
-      // getTextPayload actually returns a union of string | error
-      // we will show how to handle the error later in the demo
-      // for now, just use check that "removes" the error
-      // (in reality, if there is error it will pass it up the caller stack).
-      string payload = check request.getTextPayload();
-      
-      http:Response res;
-
-      // use it in the response
-      res.setPayload("Hello "+untaint payload+"!\n");
-
-      _ = caller->respond(res);
-  }
+service hello on new http:Listener(9090) {
+    // Add this annotation to the resource to change its path
+    // and to limit the calls to POST only.
+    @http:ResourceConfig {
+        path: "/",
+        methods: ["POST"]
+    }
+    resource function hi (http:Caller caller, http:Request request) returns error? {
+        // Extract the payload from the request
+        // getTextPayload actually returns a union of string | error.
+        // We will show how to handle the error later in the demo
+        // for now, just use check that "removes" the error
+        // (in reality, if there is error it will pass it up the caller stack).
+        var payload = check request.getTextPayload();
+        http:Response res = new;
+        // use it in the response
+        res.setPayload("Hello "+ untaint payload + "!\n");
+        _ = check caller->respond(res);
+        return;
+    }
 }
 ```
 
@@ -418,13 +412,13 @@ import ballerina/config;
 This code would be right below the import:
 
 ```ballerina
-endpoint twitter:Client tw {
+twitter:Client tw = new({
    clientId: config:getAsString("clientId"),
    clientSecret: config:getAsString("clientSecret"),
    accessToken: config:getAsString("accessToken"),
    accessTokenSecret: config:getAsString("accessTokenSecret"),
    clientConfig:{}   
-};
+});
 ```
 
 Now we have the twitter endpoint in our hands, let’s go ahead and tweet!
@@ -445,52 +439,48 @@ Your code will now look like this:
 // To get it for tab completion:
 // ballerina pull wso2/twitter
 // To run it:
-// ballerina run demo.bal --config twitter.toml
+// ballerina run --config twitter.toml demo.bal
 // To invoke:
 // curl -X POST -d "Demo" localhost:9090
 
-import ballerina/http;
-
-// Pull and use wso2/twitter connector from http://central.ballerina.io
-// It has the objects and APIs to make working with Twitter easy.
-import wso2/twitter;
-
-// This package helps read config files.
+// this package helps read config files
 import ballerina/config;
+import ballerina/http;
+// Pull and use wso2/twitter connector from http://central.ballerina.io
+// It has the objects and APIs to make working with Twitter easy
+import wso2/twitter;
 
 // Twitter package defines this type of endpoint
 // that incorporates the twitter API.
 // We need to initialize it with OAuth data from apps.twitter.com.
 // Instead of providing this confidential data in the code
 // we read it from a toml file.
-endpoint twitter:Client tw {
-  clientId: config:getAsString("clientId"),
-  clientSecret: config:getAsString("clientSecret"),
-  accessToken: config:getAsString("accessToken"),
-  accessTokenSecret: config:getAsString("accessTokenSecret"),
-  clientConfig: {}  
-};
+twitter:Client tw = new({
+   clientId: config:getAsString("clientId"),
+   clientSecret: config:getAsString("clientSecret"),
+   accessToken: config:getAsString("accessToken"),
+   accessTokenSecret: config:getAsString("accessTokenSecret"),
+   clientConfig: {}
+});
 
 @http:ServiceConfig {
-  basePath: "/"
+   basePath: "/"
 }
-service<http:Service> hello bind {port:9090} {
-  @http:ResourceConfig {
-      path: "/",
-      methods: ["POST"]
-  }
-  hi (endpoint caller, http:Request request) {
-      http:Response res;
-      string payload = check request.getTextPayload();
-
-      // Use the twitter connector to do the tweet.
-      twitter:Status st = check tw->tweet(payload);
-
-      // Change the response back.
-      res.setPayload("Tweeted: " + st.text);
-
-      _ = caller->respond(res);
-  }
+service hello on new http:Listener(9090) {
+    @http:ResourceConfig {
+        path: "/",
+        methods: ["POST"]
+    }
+    resource function hi (http:Caller caller, http:Request request) returns error? {
+        http:Response res = new;
+        string payload = check request.getTextPayload();
+        // Use the twitter connector to do the tweet
+        twitter:Status st = check tw->tweet(payload);
+        // Change the response back
+        res.setPayload("Tweeted: " + untaint st.text + "\n");
+        _ = check caller->respond(res);
+        return;
+    }
 }
 ```
 
@@ -559,57 +549,71 @@ $ curl -d "My new tweet" -X POST localhost:9090
 Now your code will look like:
 
 ```ballerina
-// Add transformation: #ballerina to input, and JSON to output
+// Add twitter connector: import, create endpoint,
+// create a new resource that invoke it
+// To find it:
+// ballerina search twitter
+// To get it for tab completion:
+// ballerina pull wso2/twitter
 // To run it:
-// ballerina run demo.bal --config twitter.toml
+// ballerina run --config twitter.toml demo.bal
 // To invoke:
 // curl -X POST -d "Demo" localhost:9090
 
-import ballerina/http;
-import wso2/twitter;
+// this package helps read config files
 import ballerina/config;
+import ballerina/http;
+// Pull and use wso2/twitter connector from http://central.ballerina.io
+// It has the objects and APIs to make working with Twitter easy
+import wso2/twitter;
 
-endpoint twitter:Client tw {
-  clientId: config:getAsString("clientId"),
-  clientSecret: config:getAsString("clientSecret"),
-  accessToken: config:getAsString("accessToken"),
-  accessTokenSecret: config:getAsString("accessTokenSecret"),
-  clientConfig:{}  
-};
+
+// Twitter package defines this type of endpoint
+// that incorporates the twitter API.
+// We need to initialize it with OAuth data from apps.twitter.com.
+// Instead of providing this confidential data in the code
+// we read it from a toml file.
+twitter:Client tw = new({
+        clientId: config:getAsString("clientId"),
+        clientSecret: config:getAsString("clientSecret"),
+        accessToken: config:getAsString("accessToken"),
+        accessTokenSecret: config:getAsString("accessTokenSecret"),
+        clientConfig: {}
+});
 
 @http:ServiceConfig {
-  basePath: "/"
+    basePath: "/"
 }
-service<http:Service> hello bind {port:9090} {
+service hello on new http:Listener(9090) {
+    @http:ResourceConfig {
+        path: "/",
+        methods: ["POST"]
+    }
+    resource function hi (http:Caller caller, http:Request request) returns error? {
+        string payload = check request.getTextPayload();
 
-  @http:ResourceConfig {
-      path: "/",
-      methods: ["POST"]
-  }
-  hi (endpoint caller, http:Request request) {
-      http:Response res;
-      string payload = check request.getTextPayload();
+        // Transformation on the way to the twitter service - add hashtag.
+        if (!payload.contains("#ballerina")){payload=payload+" #ballerina";}
 
-      // Transformation on the way to the twitter service - add hashtag.
-      if (!payload.contains("#ballerina")){payload=payload+" #ballerina";}
+        twitter:Status st = check tw->tweet(payload);
 
-      twitter:Status st = check tw->tweet(payload);
+        // Transformation on the way out - generate a JSON and pass it back
+        // note that json is a first-class citizen
+        // and we can construct it from variables, data, and fields.
+        json myJson = {
+            text: payload,
+            id: st.id,
+            agent: "ballerina"
+        };
+        http:Response res = new;
+        // Pass back JSON instead of text.
+        res.setPayload(untaint myJson);
 
-      // Transformation on the way out - generate a JSON and pass it back,
-      // note that json is a first-class citizen
-      // and we can construct it from variables, data, and fields.
-      json myJson = {
-          text: payload,
-          id: st.id,
-          agent: "ballerina"
-      };
-
-      // Pass back JSON instead of text.
-      res.setPayload(untaint myJson);
-
-      _ = caller->respond(res);
-  }
+        _ = check caller->respond(res);
+        return;
+    }
 }
+
 ```
 
 To summarize:
@@ -640,7 +644,7 @@ Add generation of Kubernetes artifacts to the **service**:
 
 <table>
   <tr>
-    <td>Special Note for minikube users on ubuntu: You need to add the minikube host and certs path under "Deployment" annotation.
+  Special Note for minikube users on ubuntu: You need to add the minikube host and certs path under "Deployment" annotation.
 
 ```ballerina
 @kubernetes:Deployment {
@@ -650,8 +654,7 @@ Add generation of Kubernetes artifacts to the **service**:
     dockerCertPath:"/home/chanaka/.minikube/certs"
 }
 ```
-       
-     </td>
+
   </tr>
 </table>
 
@@ -674,15 +677,13 @@ And we also need to create an http listener and tell Kubernetes to expose it ext
   name: "ballerina-demo"   
 }
 
-endpoint http:Listener listener {
-   port : 9090
-};
+listener http:Listener cmdListener = new(9090);
 ```
 
 Obviously, the service now needs to be bound to that listener and not just inline anonymous declaration:
 
 ```ballerina
-service<http:Service> hello bind listener {
+service hello on cmdListener {
 ```
 
 Your code should now look like this:
@@ -702,67 +703,65 @@ Your code should now look like this:
 // To clean up:
 // kubectl delete -f kubernetes/
 
+import ballerina/config;
 import ballerina/http;
 import wso2/twitter;
-import ballerina/config;
-
-// Add kubernetes package.
+// Add kubernetes package
 import ballerinax/kubernetes;
 
-endpoint twitter:Client tw {
-  clientId: config:getAsString("clientId"),
-  clientSecret: config:getAsString("clientSecret"),
-  accessToken: config:getAsString("accessToken"),
-  accessTokenSecret: config:getAsString("accessTokenSecret"),
-  clientConfig:{}  
-};
+twitter:Client tw = new({
+    clientId: config:getAsString("clientId"),
+    clientSecret: config:getAsString("clientSecret"),
+    accessToken: config:getAsString("accessToken"),
+    accessTokenSecret: config:getAsString("accessTokenSecret"),
+    clientConfig:{}
+});
 
 // Now instead of inline {port:9090} bind we create a separate endpoint.
 // We need this so we can add Kubernetes notation to it and tell the compiler
 // to generate a Kubernetes services (expose it to the outside world).
 @kubernetes:Service {
-  serviceType: "NodePort",
-  name: "ballerina-demo" 
+    serviceType: "NodePort",
+    name: "ballerina-demo"
 }
-endpoint http:Listener listener {
-  port: 9090
-};
+listener http:Listener cmdListener = new(9090);
 
 // Instruct the compiler to generate Kubernetes deployment artifacts
 // and a docker image out of this Ballerina service.
 @kubernetes:Deployment {
-  image: "demo/ballerina-demo",
-  name: "ballerina-demo"
+    image: "demo/ballerina-demo",
+    name: "ballerina-demo"
 }
-
 // Pass our config file into the image.
 @kubernetes:ConfigMap{
-  ballerinaConf: "twitter.toml"
+    ballerinaConf: "twitter.toml"
 }
 @http:ServiceConfig {
- basePath: "/"
+    basePath: "/"
 }
-service<http:Service> hello bind listener {
-  @http:ResourceConfig {
-      path: "/",
-      methods: ["POST"]
-  }
-  hi (endpoint caller, http:Request request) {
-      http:Response res;
-      string payload = check request.getTextPayload();
-      if (!payload.contains("#ballerina")){payload=payload+" #ballerina";}
-      
-      twitter:Status st = check tw->tweet(payload);
+service hello on cmdListener {
+    @http:ResourceConfig {
+        path: "/",
+        methods: ["POST"]
+    }
+    resource function hi (http:Caller caller, http:Request request) returns error? {
+        string payload = check request.getTextPayload();
 
-      json myJson = {
-          text: payload,
-          id: st.id,
-          agent: "ballerina"
-      };
+        if (!payload.contains("#ballerina")){payload=payload+" #ballerina";}
 
-      res.setPayload(untaint myJson);
-      _ = caller->respond(res);
-  }
+        twitter:Status st = check tw->tweet(payload);
+
+        json myJson = {
+            text: payload,
+            id: st.id,
+            agent: "ballerina"
+        };
+        http:Response res = new;
+        res.setPayload(untaint myJson);
+
+        _ = check caller->respond(res);
+        return;
+    }
 }
 ```
 
@@ -881,15 +880,13 @@ We will use [http://www.simpsonquotes.xyz/quote](http://www.simpsonquotes.xyz/qu
 
 For ease (and speed) of the demo, we base the changes on the pre-Kubernetes code and make the demos local (to cut time on regenerating and redeploying the images).
 
-We have added an endpoint to represent the external service:
+We have added an client endpoint to represent the external service:
 
 ```ballerina
-endpoint http:Client homer {
- url: "http://www.simpsonquotes.xyz"
-};
+http:Client homer = new("http://www.simpsonquotes.xyz");
 ```
 
-And we use that endpoint (and not the payload) to get the status for our tweet:
+And we use that client endpoint (and not the payload) to get the status for our tweet:
 
 ```ballerina
      http:Response hResp = check homer->get("/quote");
@@ -901,62 +898,65 @@ Your code will now look like:
 ```ballerina
 // Add another external web service endpoint
 // to compensate for slowness use circuit breaker
+
 // To run it:
-// ballerina run demo.bal --config twitter.toml
+// ballerina run --config twitter.toml demo.bal
 // To invoke:
 // curl -X POST localhost:9090
 // Invoke a few times to show that it is often slow
 
+import ballerina/config;
 import ballerina/http;
 import wso2/twitter;
-import ballerina/config;
 
-// Create an endpoint for the external web service to use.
-endpoint http:Client homer {
- url: "http://www.simpsonquotes.xyz"
-};
+http:Client homer = new("http://www.simpsonquotes.xyz");
 
-endpoint twitter:Client tw {
- clientId: config:getAsString("clientId"),
- clientSecret: config:getAsString("clientSecret"),
- accessToken: config:getAsString("accessToken"),
- accessTokenSecret: config:getAsString("accessTokenSecret"),
- clientConfig: {} 
-};
+twitter:Client tw = new({
+  clientId: config:getAsString("clientId"),
+  clientSecret: config:getAsString("clientSecret"),
+  accessToken: config:getAsString("accessToken"),
+  accessTokenSecret: config:getAsString("accessTokenSecret"),
+  clientConfig: {}
+});
 
 @http:ServiceConfig {
- basePath: "/"
+  basePath: "/"
 }
-service<http:Service> hello bind {port:9090} {
+service hello on new http:Listener(9090) {
+    @http:ResourceConfig {
+      path: "/",
+      methods: ["POST"]
+    }
+    resource function hi (http:Caller caller, http:Request request) returns error? {
 
- @http:ResourceConfig {
-     path: "/",
-     methods: ["POST"]
- }
- hi (endpoint caller, http:Request request) {
-     http:Response res;
+        var hResp = check homer->get("/quote");
+        var status = check hResp.getTextPayload();
+        if (!status.contains("#ballerina")) {
+            status = status + " #ballerina";
+        }
 
-// Call the remote service and get the payload from it and not the request.
-     http:Response hResp = check homer->get("/quote");
-     string payload = check hResp.getTextPayload();
+        var st = check tw->tweet(status);
 
-     if (!payload.contains("#ballerina")){payload=payload+" #ballerina";}
+        json myJson = {
+            text: status,
+            id: st.id,
+            agent: "ballerina"
+        };
+        http:Response res = new;
+        res.setPayload(untaint myJson);
 
-     twitter:Status st = check tw->tweet(payload);
-
-     json myJson = {
-         text: payload,
-         id: st.id,
-         agent: "ballerina"
-     };
-
-     res.setPayload(untaint myJson);
-     _ = caller->respond(res);
- }
+        _ = check caller->respond(res);
+        return;
+    }
 }
 ```
 
 Now we can quote Homer on Twitter:
+```
+$ ballerina run --config twitter.toml demo.bal
+ballerina: initiating service(s) in 'demo.bal'
+ballerina: started HTTP/WS endpoint 0.0.0.0:9090
+```
 
 ```
 $ curl -X POST localhost:9090
@@ -981,13 +981,12 @@ That Simpson service that we use is sometimes very slow. Let’s put a Circuit B
 We make the endpoint initialization include circuit breaker logic:
 
 ```ballerina
-endpoint http:Client homer {
- url: "http://www.simpsonquotes.xyz",
- circuitBreaker: {
-     failureThreshold: 0.0,
-     resetTimeMillis: 3000,
-     statusCodes: [500, 501, 502]
- },
+http:Client homer = new("http://www.simpsonquotes.xyz", {
+    circuitBreaker: {
+        failureThreshold: 0.0,
+        resetTimeMillis: 3000,
+        statusCodes: [500, 501, 502]
+    },
  timeoutMillis: 500
 };
 ```
@@ -996,23 +995,20 @@ And the handling changes to:
 
 ```ballerina
 var v = homer->get("/quote");
-
-match v {
-   http:Response hResp => {
-       string payload = check hResp.getTextPayload();
-       if (!payload.contains("#ballerina")){payload=payload+" #ballerina";}
-       twitter:Status st = check tw->tweet(payload);
-
-       json myJson = {
-           text: payload,
-           id: st.id,
-           agent: "ballerina"
-       };
-       res.setPayload(myJson);
-   }
-   error err => {
-       res.setPayload("Circuit is open. Invoking default behavior.\n");
-   }
+if (v is http:Response) {
+    var payload = check v.getTextPayload();
+    if (!payload.contains("#ballerina")){
+        payload=payload+" #ballerina";
+    }
+    var st = check tw->tweet(payload);
+    json myJson = {
+        text: payload,
+        id: st.id,
+        agent: "ballerina"
+    };
+    res.setPayload(untaint myJson);
+} else {
+    res.setPayload("Circuit is open. Invoking default behavior.\n");
 }
 ```
 
@@ -1025,73 +1021,63 @@ Full code:
 ```ballerina
 // To compensate for slowness use circuit breaker
 // To run it:
-// ballerina run demo_circuitbreaker.bal --config twitter.toml
+// ballerina run --config twitter.toml demo_circuitbreaker.bal
 // To invoke:
 // curl -X POST localhost:9090
 // Invoke many times to show how circuit breaker works
 
+import ballerina/config;
 import ballerina/http;
 import wso2/twitter;
-import ballerina/config;
 
-// Change the endpoint initialization to add timeout (half-send)
-// and circuit breaker logic.
-endpoint http:Client homer {
- url: "http://www.simpsonquotes.xyz",
- circuitBreaker: {
-     failureThreshold: 0.0,
-     resetTimeMillis: 3000,
-     statusCodes: [500, 501, 502]
- },
- timeoutMillis: 500
-};
+http:Client homer = new("http://www.simpsonquotes.xyz", config={
+        circuitBreaker: {
+            failureThreshold: 0.0,
+            resetTimeMillis: 3000,
+            statusCodes: [500, 501, 502]
+        },
+        timeoutMillis: 900
+    });
 
-endpoint twitter:Client tw {
- clientId: config:getAsString("clientId"),
- clientSecret: config:getAsString("clientSecret"),
- accessToken: config:getAsString("accessToken"),
- accessTokenSecret: config:getAsString("accessTokenSecret"),
- clientConfig: {} 
-};
+twitter:Client tw = new({
+        clientId: config:getAsString("clientId"),
+        clientSecret: config:getAsString("clientSecret"),
+        accessToken: config:getAsString("accessToken"),
+        accessTokenSecret: config:getAsString("accessTokenSecret"),
+        clientConfig: {}
+    });
 
 @http:ServiceConfig {
- basePath: "/"
+    basePath: "/"
 }
-service<http:Service> hello bind {port: 9090} {
+service hello on new http:Listener(9090) {
+    @http:ResourceConfig {
+        path: "/",
+        methods: ["POST"]
+    }
+    resource function hi (http:Caller caller, http:Request request) returns error? {
+        http:Response res = new;
 
- @http:ResourceConfig {
-     path: "/",
-     methods: ["POST"]
- }
- hi (endpoint caller, http:Request request) {
-     http:Response res;
-     
-     // Use var as a shorthand for http:Response | error union type.
-     // Compiler is smart enough to use the actual type.
-     var v = homer->get("/quote");
+        var v = homer->get("/quote");
+        if (v is http:Response) {
+            var payload = check v.getTextPayload();
+            if (!payload.contains("#ballerina")){
+                payload=payload+" #ballerina";
+            }
+            var st = check tw->tweet(payload);
+            json myJson = {
+                text: payload,
+                id: st.id,
+                agent: "ballerina"
+            };
+            res.setPayload(untaint myJson);
+        } else {
+            res.setPayload("Circuit is open. Invoking default behavior.\n");
+        }
 
-     // Match is the way to provide different handling of error vs normal output.
-     match v {
-         http:Response hResp => {
-
-             // If proper http response use our old code.
-             string payload = check hResp.getTextPayload();
-             if (!payload.contains("#ballerina")){payload=payload+" #ballerina";}
-             twitter:Status st = check tw->tweet(payload);
-             json myJson = {
-                 text: payload,
-                 id: st.id,
-                 agent: "ballerina"
-             };
-             res.setPayload(untaint myJson);
-         }
-         error err => {
-             // This block gets invoked if there is error or if circuit breaker is Open.
-             res.setPayload("Circuit is open. Invoking default behavior.\n");
-         }
-     }
-     _ = caller->respond(res);
- }
+        _ = check caller->respond(res);
+        return;
+    }
 }
 ```
 
@@ -1125,31 +1111,36 @@ In this particular case, the remote endpoint is often very slow, so why not just
 We move all the logic to a function (can leave it as it was or simplify by removing all the error handling and constructing and passing the response - this will be an asynchronous call so we do not care about the response):
 
 ```ballerina
-function doTweet() {
-   http:Response hResp = check homer->get("/quote");
-   string payload = check hResp.getTextPayload();
-   if (!payload.contains("#ballerina")){ payload = payload+" #ballerina";}
-   _ = tw->tweet(payload);
+function doTweet() returns error? {
+    // We can remove all the error handling here because we call
+    // it asynchronously, don't want to get any output and
+    // don't care if it takes too long or fails.
+    var hResp = check homer->get("/quote");
+    var payload = check hResp.getTextPayload();
+    if (!payload.contains("#ballerina")){ payload = payload+" #ballerina"; }
+    _ = check tw->tweet(payload);
+    return;
 }
 ```
 
 Our endpoint no longer needs circuit breaker:
 
 ```ballerina
-endpoint http:Client homer {
-   url:"http://www.simpsonquotes.xyz"
-};
+http:Client homer = new("http://www.simpsonquotes.xyz");
 ```
 
 And we use the start keyword to invoke the function in a separate thread asynchronously:
 
 ```ballerina
- hi (endpoint caller, http:Request request) {
-     _ = start doTweet();
-     http:Response res;
-     res.setPayload("Async call\n");     
-     _ = caller->respond(res);
- }
+    resource function hi (http:Caller caller, http:Request request) returns error? {
+        // start is the keyword to make the call asynchronously.
+        _ = start doTweet();
+        http:Response res = new;
+        // just respond back with the text.
+        res.setPayload("Async call\n");
+        _ = check caller->respond(res);
+        return;
+    }
  ```
 
 Your full code now looks like:
@@ -1157,63 +1148,58 @@ Your full code now looks like:
 ```ballerina
 // Move all the invocation and tweeting functionality to another function
 // call it asynchronously
+
 // To run it:
-// ballerina run demo_async.bal --config twitter.toml
+// ballerina run --config twitter.toml demo_async.bal
 // To invoke:
 // curl -X POST localhost:9090
 // Invoke many times to show how quickly the function returns
 // then go to the browser and refresh a few times to see how gradually new tweets appear
 
+import ballerina/config;
 import ballerina/http;
 import wso2/twitter;
-import ballerina/config;
 
-endpoint twitter:Client tw {
- clientId: config:getAsString("clientId"),
- clientSecret: config:getAsString("clientSecret"),
- accessToken: config:getAsString("accessToken"),
- accessTokenSecret: config:getAsString("accessTokenSecret"),
- clientConfig: {} 
-};
+twitter:Client tw = new({
+        clientId: config:getAsString("clientId"),
+        clientSecret: config:getAsString("clientSecret"),
+        accessToken: config:getAsString("accessToken"),
+        accessTokenSecret: config:getAsString("accessTokenSecret"),
+        clientConfig: {}
+    });
 
-endpoint http:Client homer {
- url: "http://www.simpsonquotes.xyz"
-};
+http:Client homer = new("http://www.simpsonquotes.xyz");
 
 @http:ServiceConfig {
- basePath: "/"
+    basePath: "/"
 }
-service<http:Service> hello bind {port: 9090} {
-
- @http:ResourceConfig {
-     path: "/",
-     methods: ["POST"]
- }
-
- hi (endpoint caller, http:Request request) {
- 
-     // Start is the keyword to make the call asynchronously.
-     _ = start doTweet();
-
-     http:Response res;
-
-     // Just respond back with the text.
-     res.setPayload("Async call\n");     
-
-     _ = caller->respond(res);
- }
+service hello on new http:Listener(9090) {
+    @http:ResourceConfig {
+        path: "/",
+        methods: ["POST"]
+    }
+    resource function hi (http:Caller caller, http:Request request) returns error? {
+        // start is the keyword to make the call asynchronously.
+        _ = start doTweet();
+        http:Response res = new;
+        // just respond back with the text.
+        res.setPayload("Async call\n");
+        _ = check caller->respond(res);
+        return;
+    }
 }
 
 // Move the logic of getting the quote and pushing it to twitter
 // into a separate function to be called asynchronously.
-function doTweet() {
-   // We can remove all the error handling here because we call
-   // it asynchronously, don't want to get any output and
-   // don't care if it takes too long or fails.
-   http:Response hResp = check homer->get("/quote");
-   string payload = check hResp.getTextPayload();
-   if (!payload.contains("#ballerina")){ payload = payload+" #ballerina"; }
-   _ = tw->tweet(payload);
+function doTweet() returns error? {
+    // We can remove all the error handling here because we call
+    // it asynchronously, don't want to get any output and
+    // don't care if it takes too long or fails.
+    var hResp = check homer->get("/quote");
+    var payload = check hResp.getTextPayload();
+    if (!payload.contains("#ballerina")){ payload = payload+" #ballerina"; }
+    _ = check tw->tweet(payload);
+    return;
 }
 ```
 

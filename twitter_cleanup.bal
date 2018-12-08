@@ -14,73 +14,70 @@ import ballerina/config;
 import ballerina/io;
 import ballerina/time;
 
-endpoint twitter:Client twc {
-  clientId: config:getAsString("clientId"),
-  clientSecret: config:getAsString("clientSecret"),
-  accessToken: config:getAsString("accessToken"),
-  accessTokenSecret: config:getAsString("accessTokenSecret"),
-  clientConfig: {}  
-};
+twitter:Client twc = new({
+    clientId: config:getAsString("clientId"),
+    clientSecret: config:getAsString("clientSecret"),
+    accessToken: config:getAsString("accessToken"),
+    accessTokenSecret: config:getAsString("accessTokenSecret"),
+    clientConfig: {}  
+});
 
 @http:ServiceConfig {
-  basePath: "/"
+    basePath: "/"
 }
-service<http:Service> tweetCleaner bind {port: 9090} {
-  @http:ResourceConfig {
-    methods: ["GET"],
-    path: "/{account}/{days}"
-  }  
-  list (endpoint caller, http:Request request, string account, int days) {
-    http:Response res;
-    json[] tweets;
-    twitter:Status[] tws = getTweets(account, days);
-    foreach tw in tws {
-        json t = {  date: tw.createdAt,
-                    id: tw.id,
-                    text: tw.text};
-        tweets[lengthof tweets] = t;
-        io:println(tw.createdAt + ": " + tw.id);
+service tweetCleaner on new http:Listener(9090) {
+    @http:ResourceConfig {
+        methods: ["GET"],
+        path: "/{account}/{days}"
+    }  
+    resource function list (http:Caller caller, http:Request request, string account, int days) {
+        http:Response res = new;
+        twitter:Status[] tws = getTweets(account, days);
+        json[] tweets = [];
+        foreach var tw in tws {
+            json t = {  date: tw.createdAt,
+                        id: tw.id,
+                        text: tw.text};
+            tweets[tweets.length()] = t;
+            io:println(tw.createdAt + ": " + tw.id);
+        }
+        json out = { tweets : tweets };
+        res.setJsonPayload(untaint out, contentType = "application/json");
+        _ = caller->respond(res);
     }
-    json out = { tweets : tweets };
-    res.setJsonPayload(out, contentType = "application/json");
-    _ = caller->respond(res);
-  }
 
-  @http:ResourceConfig {
-    methods: ["DELETE"],
-    path: "/{account}/{days}"
-  }  
-  delete (endpoint caller, http:Request request, string account, int days) {
-    http:Response res;
-    json[] tweets;
-    twitter:Status[] tws = getTweets(account, days);
-    foreach tw in tws {
-        json t = {  date: tw.createdAt,
-                    id: tw.id,
-                    text: tw.text};
-        tweets[lengthof tweets] = t;
-        _ = twc->destroyStatus(untaint tw.id);
-        io:println(tw.createdAt + ": " + tw.id);
+    @http:ResourceConfig {
+        methods: ["DELETE"],
+        path: "/{account}/{days}"
+    }  
+    resource function delete (http:Caller caller, http:Request request, string account, int days) {
+        http:Response res = new;
+        json[] tweets = [];
+        twitter:Status[] tws = getTweets(account, days);
+        foreach var tw in tws {
+            json t = {  date: tw.createdAt,
+                        id: tw.id,
+                        text: tw.text};
+            tweets[tweets.length()] = t;
+            _ = twc->destroyStatus(untaint tw.id);
+            io:println(tw.createdAt + ": " + tw.id);
+        }
+        json out = { deleted : tweets };
+        res.setJsonPayload(untaint out, contentType = "application/json");
+        _ = caller->respond(res);
     }
-    json out = { deleted : tweets };
-    res.setJsonPayload(out, contentType = "application/json");
-    _ = caller->respond(res);
-  }
 }
 
 function getTweets(string account, int days) returns twitter:Status[] {
-    string searchStr;
+    string searchStr = "";
     searchStr = "from:" + account + " since:" + time:currentTime().subtractDuration(0, 0, days, 0, 0, 0, 0).format("yyyy-MM-dd");
     io:println(searchStr);
-    var v = twc->search(searchStr);
-    twitter:Status[] out;
-    match v {
-        twitter:Status[] tws => {
-            out = tws;
-        }
-        error err => {
-            io:println(err);
-        }
+    var v = twc->search(searchStr, {});
+    twitter:Status[] out = [];
+    if (v is twitter:Status[]) {
+        out = v;
+    } else {
+        io:println("Error: ", v);
     }
     return out;
 }
