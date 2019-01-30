@@ -245,12 +245,12 @@ import ballerina/http;
 // Services, endpoints, resources are built into the language.
 // This one is a HTTP service (other options include WebSockets, Protobuf, gRPC, etc).
 // We bind it to port 9090.
-service hello on new http:Listener(9090) returns error? {
+service hello on new http:Listener(9090) {
 
   // The service exposes one resource (hi).
   // It gets the endpoint that called it - so we can pass response back
   // and the request object to extract payload, etc.
-   resource function hi (http:Caller caller, http:Request request) {
+   resource function hi (http:Caller caller, http:Request request) returns error? {
         // Create the Response object.
         http:Response res = new;
         // Set the payload.
