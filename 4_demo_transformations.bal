@@ -5,7 +5,7 @@
 // To get it for tab completion:
 // ballerina pull wso2/twitter
 // To run it:
-// ballerina run --config twitter.toml demo.bal
+// ballerina run 4_demo_transformations.bal --b7a.config.file=twitter.toml
 // To invoke:
 // curl -X POST -d "Demo" localhost:9090
 
@@ -15,6 +15,7 @@ import ballerina/http;
 // Pull and use wso2/twitter connector from http://central.ballerina.io
 // It has the objects and APIs to make working with Twitter easy
 import wso2/twitter;
+import ballerina/stringutils;
 
 
 // Twitter package defines this type of endpoint
@@ -42,7 +43,9 @@ service hello on new http:Listener(9090) {
         string payload = check request.getTextPayload();
 
         // Transformation on the way to the twitter service - add hashtag.
-        if (!payload.contains("#ballerina")){payload=payload+" #ballerina";}
+        if (!stringutils:contains(payload, "#ballerina")) {
+            payload = payload + " #ballerina";
+        }
 
         twitter:Status st = check tw->tweet(payload);
 
@@ -56,7 +59,7 @@ service hello on new http:Listener(9090) {
         };
         http:Response res = new;
         // Pass back JSON instead of text.
-        res.setPayload(untaint myJson);
+        res.setPayload(<@untainted> myJson);
 
         _ = check caller->respond(res);
         return;

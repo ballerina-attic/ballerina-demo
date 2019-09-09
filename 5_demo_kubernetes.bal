@@ -1,6 +1,6 @@
 // Add kubernetes package and annotations
 // To build kubernetes artifacts:
-// ballerina build demo.bal
+// ballerina build 5_demo_kubernetes.bal
 // To run it:
 // kubectl apply -f kubernetes/
 // To see the pod:
@@ -16,7 +16,8 @@ import ballerina/config;
 import ballerina/http;
 import wso2/twitter;
 // Add kubernetes package
-import ballerinax/kubernetes;
+import ballerina/kubernetes;
+import ballerina/stringutils;
 
 twitter:Client tw = new({
     clientId: config:getAsString("clientId"),
@@ -38,12 +39,12 @@ listener http:Listener cmdListener = new(9090);
 // Instruct the compiler to generate Kubernetes deployment artifacts
 // and a docker image out of this Ballerina service.
 @kubernetes:Deployment {
-    image: "demo/ballerina-demo",
+    image: "demo/ballerina-demo:latest",
     name: "ballerina-demo"
 }
 // Pass our config file into the image.
 @kubernetes:ConfigMap{
-    ballerinaConf: "twitter.toml"
+    conf: "twitter.toml"
 }
 @http:ServiceConfig {
     basePath: "/"
@@ -56,7 +57,9 @@ service hello on cmdListener {
     resource function hi (http:Caller caller, http:Request request) returns error? {
         string payload = check request.getTextPayload();
 
-        if (!payload.contains("#ballerina")){payload=payload+" #ballerina";}
+        if (!stringutils:contains(payload, "#ballerina")) {
+            payload = payload + " #ballerina";
+        }
 
         twitter:Status st = check tw->tweet(payload);
 
@@ -66,7 +69,7 @@ service hello on cmdListener {
             agent: "ballerina"
         };
         http:Response res = new;
-        res.setPayload(untaint myJson);
+        res.setPayload(<@untainted> myJson);
 
         _ = check caller->respond(res);
         return;
