@@ -5,7 +5,7 @@
 // To get it for tab completion:
 // ballerina pull wso2/twitter
 // To run it:
-// ballerina run --config twitter.toml demo.bal
+// ballerina run 3_demo_connector.bal --b7a.config.file=twitter.toml
 // To invoke:
 // curl -X POST -d "Demo" localhost:9090
 
@@ -21,7 +21,7 @@ import wso2/twitter;
 // We need to initialize it with OAuth data from apps.twitter.com.
 // Instead of providing this confidential data in the code
 // we read it from a toml file.
-twitter:Client tw = new({
+twitter:Client tw = new ({
     clientId: config:getAsString("clientId"),
     clientSecret: config:getAsString("clientSecret"),
     accessToken: config:getAsString("accessToken"),
@@ -37,13 +37,13 @@ service hello on new http:Listener(9090) {
         path: "/",
         methods: ["POST"]
     }
-    resource function hi (http:Caller caller, http:Request request) returns error? {
+    resource function hi(http:Caller caller, http:Request request) returns error? {
         http:Response res = new;
         string payload = check request.getTextPayload();
         // Use the twitter connector to do the tweet
         twitter:Status st = check tw->tweet(payload);
         // Change the response back
-        res.setPayload("Tweeted: " + untaint st.text + "\n");
+        res.setPayload("Tweeted: " + <@untainted>st.text + "\n");
         _ = check caller->respond(res);
         return;
     }

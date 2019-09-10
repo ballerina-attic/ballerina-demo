@@ -1,6 +1,6 @@
 // The simplest hello world REST API
 // To run it:
-// ballerina run demo.bal
+// ballerina run 1_demo_hello.bal
 // To invoke:
 // curl localhost:9090/hello/hi
 

@@ -3,7 +3,7 @@
 // Get payload from the POST request
 
 // To run it:
-// ballerina run demo.bal
+// ballerina run 2_demo_annotations.bal
 // To invoke:
 // curl -X POST -d "Demo" localhost:9090
 
@@ -29,7 +29,7 @@ service hello on new http:Listener(9090) {
         var payload = check request.getTextPayload();
         http:Response res = new;
         // use it in the response
-        res.setPayload("Hello " + untaint payload + "!\n");
+        res.setPayload("Hello " + <@untainted> payload + "!\n");
         _ = check caller->respond(res);
         return;
     }
